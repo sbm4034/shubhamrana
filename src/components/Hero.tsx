@@ -1,4 +1,4 @@
-import { ArrowDown, Phone, MapPin } from "lucide-react";
+import { ArrowDown, Phone, MapPin, Download } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Hero = () => {
@@ -84,8 +84,16 @@ const Hero = () => {
             <span className="relative text-primary-foreground font-medium">View My Work</span>
           </a>
           <a
+            href="/Shubham-Rana-Resume.pdf"
+            download
+            className="group relative px-8 py-4 rounded-lg font-body text-sm tracking-wide gradient-border bg-background hover:bg-secondary transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4 text-primary group-hover:animate-bounce" />
+            <span className="relative text-foreground">Download Resume</span>
+          </a>
+          <a
             href="#contact"
-            className="group relative px-8 py-4 rounded-lg font-body text-sm tracking-wide gradient-border bg-background hover:bg-secondary transition-colors"
+            className="group relative px-8 py-4 rounded-lg font-body text-sm tracking-wide border border-primary/30 bg-background hover:bg-primary/10 transition-colors"
           >
             <span className="relative text-foreground">Get In Touch</span>
           </a>
