@@ -57,7 +57,12 @@ export default function ChatBot() {
     setMessages([...newMessages, { role: 'assistant', content: '' }]);
 
     try {
-      const functionUrl = `/functions/v1/chatbot-proxy`;
+      // Use build-time env when available; fall back to the known backend URL/key so the chatbot works even if env injection fails.
+      const backendUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || "https://jbhagbljdcoznfudssjz.supabase.co";
+      const anonKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ||
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpiaGFnYmxqZGNvem5mdWRzc2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzA0OTgsImV4cCI6MjA4MjU0NjQ5OH0.OHTuF1qT2wJc5yJO681kX2U0rUVwFdd6n9Kld4RpMqU";
+
+      const functionUrl = `${backendUrl}/functions/v1/chatbot-proxy`;
 
       if (!USE_STREAMING) {
         const resp = await fetch(functionUrl, {
@@ -65,6 +70,8 @@ export default function ChatBot() {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
           },
           body: JSON.stringify({ messages: newMessages, streaming: false }),
         });
@@ -91,7 +98,9 @@ export default function ChatBot() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
+          Accept: 'text/event-stream',
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
         },
         body: JSON.stringify({ messages: newMessages, streaming: true }),
       });
