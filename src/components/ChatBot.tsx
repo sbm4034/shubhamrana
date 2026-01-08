@@ -1,26 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, X, MessageCircle, Minimize2, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-
-const USE_STREAMING = true; 
-
-
-const isDev = import.meta.env.DEV; 
-const MODAL_API_URL = USE_STREAMING 
-  ? (isDev 
-      ? 'https://sbm4034--llama-chat-bot-serve-dev.modal.run/chat'
-      : ' https://sbm4034--llama-chat-bot-serve.modal.run/chat')
-  : (isDev
-      ? 'https://sbm4034--llama-chat-bot-serve-dev.modal.run/chat-simple'
-      : 'https://sbm4034--llama-chat-bot-serve.modal.run/chat-simple');
-
-
-const API_KEY = import.meta.env.VITE_CHATBOT_API_KEY;
+const USE_STREAMING = true;
 
 const SUGGESTED_QUESTIONS = [
   "What are Shubham's key skills?",
@@ -72,38 +59,36 @@ export default function ChatBot() {
 
     try {
       if (!USE_STREAMING) {
-        const response = await fetch(MODAL_API_URL, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'X-API-Key': API_KEY  
-          },
-          body: JSON.stringify({ messages: newMessages }),
+        const { data: responseData, error } = await supabase.functions.invoke('chatbot-proxy', {
+          body: { messages: newMessages, streaming: false },
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (error) {
+          throw new Error(error.message || 'Failed to get response');
         }
 
-        const data = await response.json();
         setMessages([...newMessages, { 
           role: 'assistant', 
-          content: data.response || 'Sorry, I encountered an error.' 
+          content: responseData?.response || 'Sorry, I encountered an error.' 
         }]);
         setLoading(false);
         return;
       }
 
-      
-      const response = await fetch(MODAL_API_URL, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
-          'X-API-Key': API_KEY  
-        },
-        body: JSON.stringify({ messages: newMessages }),
-      });
+      // For streaming, we need to use fetch directly to handle SSE
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chatbot-proxy`,
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ messages: newMessages, streaming: true }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
