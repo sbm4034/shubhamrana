@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, X, MessageCircle, Minimize2, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -58,37 +57,44 @@ export default function ChatBot() {
     setMessages([...newMessages, { role: 'assistant', content: '' }]);
 
     try {
+      const functionUrl = `/functions/v1/chatbot-proxy`;
+
       if (!USE_STREAMING) {
-        const { data: responseData, error } = await supabase.functions.invoke('chatbot-proxy', {
-          body: { messages: newMessages, streaming: false },
+        const resp = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ messages: newMessages, streaming: false }),
         });
 
-        if (error) {
-          throw new Error(error.message || 'Failed to get response');
+        if (!resp.ok) {
+          throw new Error(`HTTP error! status: ${resp.status}`);
         }
 
-        setMessages([...newMessages, { 
-          role: 'assistant', 
-          content: responseData?.response || 'Sorry, I encountered an error.' 
-        }]);
+        const responseData = await resp.json();
+
+        setMessages([
+          ...newMessages,
+          {
+            role: 'assistant',
+            content: responseData?.response || responseData?.text || 'Sorry, I encountered an error.',
+          },
+        ]);
         setLoading(false);
         return;
       }
 
-      // For streaming, we need to use fetch directly to handle SSE
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chatbot-proxy`,
-        {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'text/event-stream',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ messages: newMessages, streaming: true }),
-        }
-      );
+      // For streaming, we use fetch directly to handle SSE
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
+        body: JSON.stringify({ messages: newMessages, streaming: true }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
