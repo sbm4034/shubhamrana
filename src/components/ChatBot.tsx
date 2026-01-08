@@ -9,16 +9,16 @@ interface Message {
 const USE_STREAMING = true;
 
 const SUGGESTED_QUESTIONS = [
-  "What are Shubham's key skills?",
-  "Tell me about his recent projects",
-  "What's his experience with ML?"
-];
+    "What are your key skills?",
+    "What projects have you worked on?",
+    "What kind of work do you focus on?"
+  ];
 
 export default function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm Shubham's AI assistant. Ask me anything about his experience, skills, or projects!"
+      content: "Ask me anything."
     }
   ]);
   const [input, setInput] = useState('');
@@ -57,7 +57,6 @@ export default function ChatBot() {
     setMessages([...newMessages, { role: 'assistant', content: '' }]);
 
     try {
-      // Use build-time env when available; fall back to the known backend URL/key so the chatbot works even if env injection fails.
       const backendUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || "https://jbhagbljdcoznfudssjz.supabase.co";
       const anonKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ||
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpiaGFnYmxqZGNvem5mdWRzc2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NzA0OTgsImV4cCI6MjA4MjU0NjQ5OH0.OHTuF1qT2wJc5yJO681kX2U0rUVwFdd6n9Kld4RpMqU";
@@ -203,7 +202,7 @@ export default function ChatBot() {
     setMessages([
       {
         role: 'assistant',
-        content: "Hi! I'm Shubham's AI assistant. Ask me anything about his experience, skills, or projects!"
+        content: "Hi!"
       }
     ]);
     setShowSuggestions(true);
@@ -238,26 +237,26 @@ export default function ChatBot() {
   return (
     <div
       className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-        isMinimized ? 'w-80' : 'w-96'
+        isMinimized ? 'w-80' : 'w-[420px]'
       }`}
     >
       {/* Chat Window */}
       <div
         className={`bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-700 transition-all duration-300 ${
-          isMinimized ? 'h-16' : 'h-[600px]'
+          isMinimized ? 'h-16' : 'h-[700px]'
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-full">
-              <Bot className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Shubham's AI Assistant</h3>
-              <p className="text-xs text-emerald-100">Ask about experience & skills</p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+        <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5" />
+        </div>
+        <div className="leading-tight">
+            <h3 className="font-semibold text-base">Chat with Shubham</h3>
+            <p className="text-xs text-emerald-100">Ask about my work & projects</p>
+        </div>
+        </div>
           <div className="flex gap-2">
             <button
               onClick={clearChat}
@@ -370,7 +369,7 @@ export default function ChatBot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask about Shubham's experience..."
+                  placeholder="Ask about my experience..."
                   disabled={loading}
                   className="flex-1 px-4 py-2.5 bg-gray-900 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-800 disabled:cursor-not-allowed text-sm"
                 />
@@ -384,7 +383,7 @@ export default function ChatBot() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                Powered by Gemma AI • Streaming
+              Personal chatbot • Streaming
               </p>
             </div>
           </>
